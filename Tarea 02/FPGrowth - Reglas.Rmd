@@ -1,0 +1,64 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(arules)
+```
+
+```{r}
+
+# obtener los datos
+data <- read.csv(file= "C:\\Users\\dventura\\Downloads\\db_csv_\\MIGRACION_BDP.csv")
+data
+
+```
+
+```{r}
+# quitar columnas que no serán necesarias
+subdata <- data
+
+# ejecutar algorimo apriori
+reglas <- apriori(subdata, parameter = list(support=0.5,confidence=0.2))
+
+```
+```{r}
+# leer reglas para visualizar resultados
+inspect(reglas)
+
+```
+
+```{r}
+
+# hombres
+subdata_fp <- subset(data, PEI3 == 1)
+subdata_fp <- subdata_fp[, !(names(subdata_fp) %in% c("PEI3"))]
+
+# meseta central
+subdata_fp <- subset(data, DEPARTAMENTO <= 4)
+subdata_fp <- subdata_fp[, !(names(subdata_fp) %in% c("PEI3"))]
+
+# no meseta central
+subdata_fp <- subset(data, DEPARTAMENTO >= 4)
+subdata_fp <- subdata_fp[, !(names(subdata_fp) %in% c("PEI3"))]
+
+# mujeres
+subdata_fp <- subset(data, PEI3 == 2)
+subdata_fp <- subdata_fp[, !(names(subdata_fp) %in% c("PEI3"))]
+
+
+# ahora se ejecuta algoritmo fpgrowth
+reglasfpgrowth <- fim4r(subdata_fp, method = "fpgrowth", target = "rules", supp = .2, conf=.5)
+
+reglasframe <- as(reglasfpgrowth, "data.frame")
+
+
+```
+
+
+
+```{r}
+write.csv(reglasframe, file = "C:\\Users\\dventura\\Downloads\\db_csv_\\reglas-MIGRACION_BDP.csv")
+```
+
