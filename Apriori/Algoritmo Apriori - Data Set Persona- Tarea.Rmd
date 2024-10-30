@@ -1,0 +1,86 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+ìnstall.packages("arules")
+library(arules)
+```
+
+```{r}
+data <- read.csv('C:\\Users\\jorge\\Downloads\\db_csv_\\PERSONA_BDP.csv')
+```
+
+```{r}
+data[0:10]
+
+
+```
+
+```{r}
+
+# se le indican los datos
+# parameter dentro de la lista el soporte de 0.2 significa que el 20% de ocurrencias debe tener como mínimo una regla para ser considerada válida
+
+
+reglas <- apriori(data,parameter = list(support=0.2, confidence=0.5))
+
+```
+
+
+
+```{r}
+
+colnames(data)
+
+datospea <- data$PEA
+datospea
+
+```
+```{r}
+# Verificar el número de valores únicos en cada columna
+unique_values <- sapply(data, function(x) length(unique(x)))
+
+# Mostrar las columnas que tienen menos de 2 valores únicos
+unique_values[unique_values < 2]
+
+unique_values
+```
+
+```{r}
+# Función que selecciona las columnas con más de dos valores únicos
+guardar_columnas_unicas <- function(data) {
+  # Identificar las columnas con más de 2 valores únicos
+  columnas_seleccionadas <- sapply(data, function(col) length(unique(col)) > 2)
+  
+  # Filtrar las columnas que cumplen la condición
+  nuevo_dataset <- data[, columnas_seleccionadas]
+  
+  return(nuevo_dataset)
+}
+
+
+```
+
+```{r}
+
+# Aplicar la función al dataset
+nuevo_data <- guardar_columnas_unicas(data)
+
+nuevo_data[0:10]
+```
+
+
+```{r}
+
+nuevo_reglas <- apriori(nuevo_data,parameter = list(support=0.2, confidence=0.5))
+
+```
+
+```{r}
+
+inspect(nuevo_reglas[0:100])
+
+```
+

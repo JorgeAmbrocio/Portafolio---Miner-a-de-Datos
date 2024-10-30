@@ -1,0 +1,8 @@
+Siguiendo el ejemplo visto en clase de apriori
+
+descargue la base de datos del censo 2018: https://censo2018.ine.gob.gt/descarga
+
+e implemente el algoritmo apriori centrado en los datos de "población" y entregue lo siguiente un documento que contenga lo siguiente:
+
+Descripción de 3 reglas de asociación encontradas con el algoritmo apriori, debe explicar con sus palabras el porqué se dan esos comportamientos.
+Enlace de repositorio de Github del código fuente donde se observe de dónde se extraen las 3 reglas de asociación.
