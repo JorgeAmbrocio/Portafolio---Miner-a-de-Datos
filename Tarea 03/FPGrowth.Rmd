@@ -10,7 +10,7 @@ library(arules)
 ```{r}
 
 # obtener los datos
-data <- read.csv(file= "C:\\Users\\dventura\\Downloads\\db_csv_\\MIGRACION_BDP.csv")
+data <- read.csv(file= "C:\\Users\\jorge\\Downloads\\db_csv_\\MIGRACION_BDP.csv")
 data
 
 ```
@@ -59,6 +59,6 @@ reglasframe <- as(reglasfpgrowth, "data.frame")
 
 
 ```{r}
-write.csv(reglasframe, file = "C:\\Users\\dventura\\Downloads\\db_csv_\\reglas-MIGRACION_BDP.csv")
+write.csv(reglasframe, file = "C:\\Users\\jorge\\Downloads\\db_csv_\\reglas-MIGRACION_BDP.csv")
 ```
 
