@@ -2,3 +2,94 @@
 title: "R Notebook"
 output: html_notebook
 ---
+
+```{r}
+install.packages("ggplot2")
+
+```
+
+
+```{r}
+library(arules)
+library(ggplot2)
+
+```
+
+```{r}
+# obtener los datos
+data <- read.csv(file= "C:\\Users\\dventura\\Downloads\\db_csv_\\MIGRACION_BDP.csv")
+data
+
+```
+```{r}
+# realizar algoritmo apriori para poder comparar los resultados con fpgrowth y kmeans
+subdata <- data
+
+reglas_apriori <- apriori(subdata, parameter = list(support=0.5, confidence=0.2))
+
+
+```
+
+```{r}
+# Lectura de resultados
+inspect(reglas_apriori[0:10])
+
+```
+```{r}
+# Preparar datos para fpgrowth
+subdata_fp <- data
+
+# hombres
+subdata_fp <- subset(data, PEI3 == 1)
+
+# meseta central
+subdata_fp <- subset(data, DEPARTAMENTO <= 4)
+
+# no meseta central
+subdata_fp <- subset(data, DEPARTAMENTO >= 4)
+
+# mujeres
+subdata_fp <- subset(data, PEI3 == 2)
+
+subdata_fp <- subdata_fp[, !(names(subdata_fp) %in% c("PEI3"))]
+
+# ejecutar algoritmo fpgrowth
+reglas_fpgrowth <- fim4r(subdata_fp, method = "fpgrowth", target = "rules", supp=.2, conf=.5)
+reglas_fpgrowth <- as(reglas_fpgrowth, "data.frame")
+
+
+
+```
+
+```{r}
+# Explorar datos para mkmeans
+subdata_km <- data
+
+
+# hombres
+subdata_km <- subset(data, PEI3 == 1)
+
+# meseta central
+subdata_km <- subset(subdata_km, DEPARTAMENTO <= 4)
+
+# no meseta central
+#subdata_km <- subset(data, DEPARTAMENTO >= 4)
+
+# mujeres
+#subdata_km <- subset(data, PEI3 == 2)
+
+cluster <- kmeans(subdata_km, centers = 3)
+
+```
+
+```{r}
+# graficar centroides
+ggplot(subdata_km, aes(x = PEI4, y = NUM_HOGAR, color = as.factor(cluster$cluster)))+
+  geom_point()+
+  geom_point(data = as.data.frame(cluster$centers), aes(x=PEI4, y = NUM_HOGAR), color = "black", size=4, shape=17)+
+  labs(title = "Edad de partida vs Personas en el hogar")+
+  theme_minimal()
+
+```
+
+

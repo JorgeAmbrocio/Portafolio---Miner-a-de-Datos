@@ -1,0 +1,292 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+install.packages("ggplot2")
+
+```
+
+
+```{r}
+library(arules)
+library(ggplot2)
+
+```
+
+```{r}
+# obtener los datos
+data <- read.csv(file= "C:\\Users\\dventura\\Downloads\\db_csv_\\PERSONA_BDP.csv")
+data
+
+```
+
+
+```{r}
+# realizar algoritmo apriori para poder comparar los resultados con fpgrowth y kmeans
+subdata <- data
+
+reglas_apriori <- apriori(subdata, parameter = list(support=0.5, confidence=0.2))
+
+
+```
+
+```{r}
+# Lectura de resultados
+inspect(reglas_apriori[0:10])
+
+```
+
+
+```{r}
+# Preparar datos para fpgrowth
+subdata_fp <- data
+
+# ejecutar algoritmo fpgrowth
+reglas_fpgrowth <- fim4r(subdata_fp, method = "fpgrowth", target = "rules", supp=.2, conf=.5)
+reglas_fpgrowth <- as(reglas_fpgrowth, "data.frame")
+
+
+
+```
+
+
+```{r}
+# Función que selecciona las columnas con más de dos valores únicos
+guardar_columnas_unicas <- function(data) {
+  # Identificar las columnas con más de 2 valores únicos
+  columnas_seleccionadas <- sapply(data, function(col) length(unique(col)) > 1)
+  
+  # Filtrar las columnas que cumplen la condición
+  nuevo_dataset <- data[, columnas_seleccionadas]
+  
+  return(nuevo_dataset)
+}
+```
+
+```{r}
+# Explorar datos para mkmeans
+subdata_km <- data
+
+#subdata_km <- guardar_columnas_unicas(data)
+
+
+# obtener solo columnas que me serán importantes
+subdata_km <- subdata_km[, c("DEPARTAMENTO", "MUNICIPIO", "AREA", "ZONA", "PCP6", "PCP7", "PCP12", "PCP17_A", "PCP17_B", "PCP34","PCP37", "NIVGRADO", "PEA", "POCUPA", "PDESOC", "PEI")]
+
+subdata_km <- subset(subdata_km, DEPARTAMENTO <= 4)
+subdata_km <- subset(subdata_km, NIVGRADO >= 60)
+subdata_km <- subset(subdata_km, PEA == 1)
+
+subdata_km <- sapply(subdata_km, function (rr) replace(rr, is.na(rr), -1) )
+subdata_km <- as.data.frame(subdata_km)
+
+cluster <- kmeans(subdata_km, centers = 2)
+
+# graficar centroides
+ggplot(subdata_km, aes(x = NIVGRADO, y = PCP7, color = as.factor(cluster$cluster)))+
+  geom_point()+
+  geom_point(data = as.data.frame(cluster$centers), aes(x=NIVGRADO, y = PCP7), color = "black", size=4, shape=17)+
+  labs(title = "Nivel académico vs Edad de la persona")+
+  theme_minimal()
+
+```
+
+## Para el conjunto de datos de personas con nivel académico mayor o igual a maestría, se clasifican en tres grupos 
+
+## Menor a licenciatura
+```{r}
+
+
+# Explorar datos para mkmeans
+subdata_km <- data
+
+# obtener solo columnas que me serán importantes
+subdata_km <- subdata_km[, c("DEPARTAMENTO", "MUNICIPIO", "AREA", "ZONA", "PCP6", "PCP7", "PCP12", "PCP17_A", "PCP17_B", "PCP34","PCP37", "NIVGRADO", "PEA", "POCUPA", "PDESOC", "PEI")]
+
+subdata_km <- subset(subdata_km, DEPARTAMENTO <= 4)
+
+# nivel educativo en licenciatura
+subdata_km <- subset(subdata_km, NIVGRADO <= 50)
+
+# quitar los datos na, pero esta función devuelve una matriz y necesito un data frame
+subdata_km <- sapply(subdata_km, function (rr) replace(rr, is.na(rr), -1) )
+subdata_km <- as.data.frame(subdata_km)
+
+cluster <- kmeans(subdata_km, centers = 3)
+
+# graficar centroides
+ggplot(subdata_km, aes(x = PCP7, y = PCP34, color = as.factor(cluster$cluster)))+
+  geom_point()+
+  geom_point(data = as.data.frame(cluster$centers), aes(x=PCP7, y = PCP34), color = "black", size=4, shape=17)+
+  labs(title = "Estado conyugal vs Edad de la persona", subtitle = "Nivel académico superior o igual a maestría")+
+  theme_minimal()
+```
+
+
+## Igual a licenciatura
+```{r}
+
+
+# Explorar datos para mkmeans
+subdata_km <- data
+
+# obtener solo columnas que me serán importantes
+subdata_km <- subdata_km[, c("DEPARTAMENTO", "MUNICIPIO", "AREA", "ZONA", "PCP6", "PCP7", "PCP12", "PCP17_A", "PCP17_B", "PCP34","PCP37", "NIVGRADO", "PEA", "POCUPA", "PDESOC", "PEI")]
+
+subdata_km <- subset(subdata_km, DEPARTAMENTO <= 4)
+
+# nivel educativo en licenciatura
+subdata_km <- subset(subdata_km, NIVGRADO >= 50)
+subdata_km <- subset(subdata_km, NIVGRADO <= 60)
+
+# quitar los datos na, pero esta función devuelve una matriz y necesito un data frame
+subdata_km <- sapply(subdata_km, function (rr) replace(rr, is.na(rr), -1) )
+subdata_km <- as.data.frame(subdata_km)
+
+cluster <- kmeans(subdata_km, centers = 3)
+
+# graficar centroides
+ggplot(subdata_km, aes(x = PCP7, y = PCP34, color = as.factor(cluster$cluster)))+
+  geom_point()+
+  geom_point(data = as.data.frame(cluster$centers), aes(x=PCP7, y = PCP34), color = "black", size=4, shape=17)+
+  labs(title = "Estado conyugal vs Edad de la persona", subtitle = "Nivel académico estudiando licenciatura")+
+  theme_minimal()
+```
+
+## Superior a maestría
+```{r}
+
+
+# Explorar datos para mkmeans
+subdata_km <- data
+
+# obtener solo columnas que me serán importantes
+subdata_km <- subdata_km[, c("DEPARTAMENTO", "MUNICIPIO", "AREA", "ZONA", "PCP6", "PCP7", "PCP12", "PCP17_A", "PCP17_B", "PCP34","PCP37", "NIVGRADO", "PEA", "POCUPA", "PDESOC", "PEI")]
+
+subdata_km <- subset(subdata_km, DEPARTAMENTO <= 4)
+
+# nivel educativo en licenciatura
+subdata_km <- subset(subdata_km, NIVGRADO >= 60)
+
+# quitar los datos na, pero esta función devuelve una matriz y necesito un data frame
+subdata_km <- sapply(subdata_km, function (rr) replace(rr, is.na(rr), -1) )
+subdata_km <- as.data.frame(subdata_km)
+
+cluster <- kmeans(subdata_km, centers = 3)
+
+# graficar centroides
+ggplot(subdata_km, aes(x = PCP7, y = PCP34, color = as.factor(cluster$cluster)))+
+  geom_point()+
+  geom_point(data = as.data.frame(cluster$centers), aes(x=PCP7, y = PCP34), color = "black", size=4, shape=17)+
+  labs(title = "Estado conyugal vs Edad de la persona", subtitle = "Nivel académico superior o igual a maestría")+
+  theme_minimal()
+```
+
+
+
+## Para el conjunto de datos de personas se clasifican mediante el status conyugal respecto al área rural o urbana 
+
+## Menor a licenciatura
+```{r}
+
+
+# Explorar datos para mkmeans
+subdata_km <- data
+
+# obtener solo columnas que me serán importantes
+subdata_km <- subdata_km[, c("DEPARTAMENTO", "MUNICIPIO", "AREA", "ZONA", "PCP6", "PCP7", "PCP12", "PCP17_A", "PCP17_B", "PCP34","PCP37", "NIVGRADO", "PEA", "POCUPA", "PDESOC", "PEI")]
+
+subdata_km <- subset(subdata_km, AREA ==1)
+
+# nivel educativo en licenciatura
+subdata_km <- subset(subdata_km, NIVGRADO >= 60)
+
+# quitar los datos na, pero esta función devuelve una matriz y necesito un data frame
+subdata_km <- sapply(subdata_km, function (rr) replace(rr, is.na(rr), -1) )
+subdata_km <- as.data.frame(subdata_km)
+
+cluster <- kmeans(subdata_km, centers = 3)
+
+# graficar centroides
+ggplot(subdata_km, aes(x = PCP7, y = PCP34, color = as.factor(cluster$cluster)))+
+  geom_point()+
+  geom_point(data = as.data.frame(cluster$centers), aes(x=PCP7, y = PCP34), color = "black", size=4, shape=17)+
+  labs(title = "Estado conyugal vs Edad de la persona", subtitle = "Nivel académico superior o igual a maestría")+
+  theme_minimal()
+```
+
+
+## Mayor o  igual a maestría que viven área rural y son mujeres
+```{r}
+
+
+# Explorar datos para mkmeans
+subdata_km <- data
+
+# obtener solo columnas que me serán importantes
+subdata_km <- subdata_km[, c("DEPARTAMENTO", "MUNICIPIO", "AREA", "PCP6", "PCP7", "PCP12", "PCP17_A", "PCP17_B", "PCP34","PCP37", "NIVGRADO")]
+
+subdata_km <- subset(subdata_km, AREA == 2)
+
+# nivel educativo en licenciatura
+subdata_km <- subset(subdata_km, NIVGRADO >= 60)
+
+# nivel educativo en licenciatura
+subdata_km <- subset(subdata_km, PCP6 ==2)
+
+
+# quitar los datos na, pero esta función devuelve una matriz y necesito un data frame
+subdata_km <- sapply(subdata_km, function (rr) replace(rr, is.na(rr), -1) )
+subdata_km <- as.data.frame(subdata_km)
+
+cluster <- kmeans(subdata_km, centers = 3)
+
+# graficar centroides
+ggplot(subdata_km, aes(x = PCP7, y = PCP34, color = as.factor(cluster$cluster)))+
+  geom_point()+
+  geom_point(data = as.data.frame(cluster$centers), aes(x=PCP7, y = PCP34), color = "black", size=4, shape=17)+
+  labs(title = "Estado conyugal vs Edad de la persona", subtitle = "Nivel académico superior o igual a maestría")+
+  theme_minimal()
+```
+
+```{r}
+
+
+# Explorar datos para mkmeans
+subdata_km <- data
+
+# obtener solo columnas que me serán importantes
+subdata_km <- subdata_km[, c("DEPARTAMENTO", "MUNICIPIO", "AREA", "ZONA", "PCP6", "PCP7", "PCP12", "PCP17_A", "PCP17_B", "PCP34","PCP37", "PCP35_A", "NIVGRADO", "PEA", "POCUPA", "PDESOC", "PEI")]
+
+# meseta central
+subdata_km <- subset(subdata_km, DEPARTAMENTO <= 4)
+
+
+# nivel educativo mayor o igual a maestría
+subdata_km <- subset(subdata_km, NIVGRADO >= 60)
+
+# mujeres
+#subdata_km <- subset(subdata_km, PCP6 == 1)
+
+# hombres
+subdata_km <- subset(subdata_km, PCP6 == 2)
+
+# quitar los datos na, pero esta función devuelve una matriz y necesito un data frame
+subdata_km <- sapply(subdata_km, function (rr) replace(rr, is.na(rr), -1) )
+subdata_km <- as.data.frame(subdata_km)
+
+# menos DE 50 hijos
+subdata_km <- subset(subdata_km, PCP35_A <=50)
+
+# Ejecutar algoritmo
+cluster <- kmeans(subdata_km, centers = 3)
+
+# graficar centroides
+ggplot(subdata_km, aes(x = PCP12, y = PCP35_A, color = as.factor(cluster$cluster)))+
+  geom_point()+
+  geom_point(data = as.data.frame(cluster$centers), aes(x=PCP12, y = PCP35_A), color = "black", size=4, shape=17)+
+  labs(title = "Cantidad hijos vivos vs Identidad étnica", subtitle = "Nivel académico superior o igual a maestría")+
+  theme_minimal()
+```
