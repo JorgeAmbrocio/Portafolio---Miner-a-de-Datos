@@ -1,0 +1,131 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Decision tree
+Análisis del data set hogar o vivienda mediante el algoritmo desicion tree.
+```{r}
+# Instalación de las librerías
+install.packages("rpart")
+install.packages("rpart.plot")
+```
+
+```{r}
+# Cargar las librerías en el entorno de ejecución
+library(rpart)
+library(rpart.plot)
+library(dplyr)
+```
+
+## Carga del conjunto de datos
+```{r}
+
+dHogar <- read.csv("..\\Data\\HOGAR_BDP.csv")
+dVivienda <- read.csv("..\\Data\\VIVIENDA_BDP.csv")
+
+```
+
+
+## Ejecución del algoritmo
+
+### Predicción de si una vivienda cuenta con carro en función de la existencia de servicio de internet, refrigeradora, lavadora y computadora.
+```{r}
+
+# Preparación del sub conjunto
+sdHogar <- dHogar
+
+# Ejecución del algoritmo
+dtHogar <- rpart(
+  PCH9_M ~
+    PCH9_D + PCH9_E + PCH9_G + PCH9_H + 
+    PCH10 + PCH13 + PCH14,
+  data = sdHogar, method = "class"
+)
+
+# Graficar resultado
+rpart.plot(
+  dtHogar, type = 2, extra = 0, under = TRUE, fallen.leaves = TRUE,
+  box.palette = "BuGn", main="Predicción de carro", cex = 0.5
+)
+
+```
+
+
+### Predicción de si una vivienda cuenta con carro 
+```{r}
+
+# Preparación del sub conjunto
+sdHogar <- dHogar
+
+
+# Ejecución del algoritmo
+dtHogar <- rpart(
+  PCH9_M ~
+    PCH9_D + PCH9_E + 
+    PCH10 + PCH13 + PCH14,
+  data = sdHogar, method = "class"
+)
+
+# Graficar resultado
+rpart.plot(
+  dtHogar, type = 2, extra = 0, under = TRUE, fallen.leaves = TRUE,
+  box.palette = "BuGn", main="Predicción de carro", cex = 0.5
+)
+
+```
+
+
+### Predicción de si una vivienda cuenta con carro y moto al mismo tiempo en función de la existencia de servicio de internet, refrigeradora, lavadora y computadora.
+```{r}
+
+# Preparación del sub conjunto
+sdHogar <- dHogar %>%
+  mutate(carromoto = ifelse(PCH9_L == 1 & PCH9_M == 1, 1, 2))
+
+
+# Ejecución del algoritmo
+dtHogar <- rpart(
+   PCH9_K~
+    PCH9_L + PCH9_M + PCH9_I + PCH9_H + 
+    PCH10 + PCH13 + PCH14+PEI1,
+  data = sdHogar, method = "class"
+)
+
+# Graficar resultado
+rpart.plot(
+  dtHogar, type = 2, extra = 0, under = TRUE, fallen.leaves = TRUE,
+  box.palette = "BuGn", main="Predicción de agua caliente", cex = 0.5
+)
+
+```
+
+
+### Predicción de si una vivienda cuenta con carro y moto al mismo tiempo en función de la existencia de servicio de internet, refrigeradora, lavadora y computadora.
+```{r}
+
+# Preparación del sub conjunto
+sdHogar <- dHogar %>%
+  mutate(carromoto = ifelse(PCH9_L == 1 & PCH9_M == 1, 1, 2)) %>%
+  filter(PCH5 != 2, PCH5 != 3, PCH5 != 5 )
+  
+
+# Ejecución del algoritmo
+dtHogar <- rpart(
+   PCH5~
+    PCH9_C + PCH9_J + PEI1 + PCH15 +
+     PCH14+PEI2_E + PCH9_C +PCH9_F,
+  data = sdHogar, method = "class"
+)
+
+# Graficar resultado
+rpart.plot(
+  dtHogar, type = 2, extra = 0, under = TRUE, fallen.leaves = TRUE,
+  box.palette = "BuGn", main="Predicción tipo de servicio sanitario", cex = 0.5
+)
+
+```
+
+
+
+
