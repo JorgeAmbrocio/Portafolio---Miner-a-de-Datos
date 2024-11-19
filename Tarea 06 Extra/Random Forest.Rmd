@@ -1,0 +1,192 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+## Instalación de librerías
+```{r}
+install.packages("randomForest")
+```
+
+
+## Declarar uso de liberías
+```{r}
+library(dplyr) # manipulación de datos
+library(randomForest) # ejecución de random forest
+library(arules) # ejecución de apriori
+library(rpart) # ejecución de decision tree
+library(rpart.plot) # graficar decision tree
+
+```
+
+
+## Obtener datos
+```{r}
+dMigra <- read.csv("..\\Data\\MIGRACION_BDP.csv")
+head(dMigra)
+```
+
+## Obtener descripción del conjunto
+```{r}
+summary(dMigra)
+```
+
+
+## Preparación del dataset
+```{r}
+# Omitir valores NA
+dMigra <- na.omit(dMigra)
+
+# Crear nueva variable que identifica si la persona es menor de edad o mayor de edad
+dMigra <- dMigra %>%
+  mutate(esmayor = ifelse(PEI4>=18, 2,1))
+
+
+# Crear departamento como factor las columnas que usaré como predicción
+dMigra$DEPARTAMENTO <- as.factor(dMigra$DEPARTAMENTO)
+dMigra$esmayor <- as.factor(dMigra$esmayor)
+
+# Desordenar valores de departamentos porque están en orden
+set.seed(4242)
+dMigra <- dMigra[sample(1:nrow(dMigra)),]
+
+# Obtener listado de filas para usar como test para la separación
+# También se obtiene como valores aleatorios
+pivot <- sample(1:nrow(dMigra), 0.8*nrow(dMigra))
+
+# Separar el conjunto
+entrenamiento <- dMigra[pivot,] # obtener todas las filas del array pivot
+pruebas <- dMigra[-pivot,] # obtener todas las que no son del array pivot
+
+
+```
+
+
+## Entrenamiento y prueba. Predicción de departamento.
+```{r}
+bosque  <- randomForest(
+  DEPARTAMENTO ~
+    PEI3 + PEI4 + PEI5,
+  data = entrenamiento,
+  ntree = 100,
+  mtry = 10
+)
+
+entrenado <- predict(bosque, pruebas)
+
+head(entrenado)
+
+```
+
+## Predicción de dos personas
+```{r}
+# Persona 01: Hombre, 18 años y se fue en el 2015
+# Persona 02: Mujer, 25 años y se fue en el 2010
+dato_nuevo  <- data.frame(
+  PEI3 = c(1,2,2),
+  PEI4 = c(18,25,45),
+  PEI5 = c(2015,2010,2020)
+)
+
+prediccion <- predict(bosque, dato_nuevo)
+
+prediccion
+```
+
+## Entrenamiento y prueba. Predicción de edad
+```{r}
+bosque_edad  <- randomForest(
+  esmayor ~
+    PEI3 + PEI5 ,
+  data = entrenamiento,
+  ntree = 100,
+  mtry = 10
+)
+
+entrenado <- predict(bosque_edad, pruebas)
+
+head(entrenado)
+
+```
+
+
+
+## Predicción de dos personas.
+```{r}
+# Persona 01: Hombre, 1 (guatemala) y se fue en el 2015
+# Persona 02: Mujer, 9 (quetzaltenango) y se fue en el 2010
+dato_nuevo  <- data.frame(
+  PEI3 = c(1,2),
+  DEPARTAMENTO = c(1,13),
+  PEI5 = c(2015,2006)
+)
+
+prediccion <- predict(bosque_edad, dato_nuevo)
+
+prediccion
+```
+
+
+
+
+## Preparación del dataset
+```{r}
+dMigra <- read.csv("..\\Data\\MIGRACION_BDP.csv")
+
+# Omitir valores NA
+dMigra <- na.omit(dMigra)
+
+# Crear nueva variable que identifica si la persona es menor de edad o mayor de edad
+dMigra <- dMigra %>%
+  mutate(esmayor = ifelse(PEI4>=18, 2,1)) %>%
+  filter(DEPARTAMENTO == 1 & MUNICIPIO == 101)
+
+
+# Crear departamento como factor las columnas que usaré como predicción
+#dMigra$esmayor <- as.factor(dMigra$esmayor)
+dMigra$PEI3 <- as.factor(dMigra$PEI3)
+
+# Desordenar valores de departamentos porque están en orden
+set.seed(4242)
+dMigra <- dMigra[sample(1:nrow(dMigra)),]
+
+# Obtener listado de filas para usar como test para la separación
+# También se obtiene como valores aleatorios
+pivot <- sample(1:nrow(dMigra), 0.8*nrow(dMigra))
+
+# Separar el conjunto
+entrenamiento <- dMigra[pivot,] # obtener todas las filas del array pivot
+pruebas <- dMigra[-pivot,] # obtener todas las que no son del array pivot
+
+bosque_edad  <- randomForest(
+  PEI3 ~
+    PEI4 + PEI5 + ZONA,
+  data = entrenamiento,
+  ntree = 100,
+  mtry = 10
+)
+
+entrenado <- predict(bosque_edad, pruebas)
+
+head(entrenado)
+
+
+
+```
+
+
+
+## Predicción de dos personas.
+```{r}
+# Persona 01: Hombre, 1 (guatemala) y se fue en el 2015
+# Persona 02: Mujer, 9 (quetzaltenango) y se fue en el 2010
+dato_nuevo  <- data.frame(
+  PEI4 = c(1,20),
+  ZONA = c(7,17),
+  PEI5 = c(2015,2006)
+)
+
+prediccion <- predict(bosque_edad, dato_nuevo)
+
+prediccion
+```
